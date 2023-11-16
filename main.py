@@ -1,7 +1,7 @@
 import sys, os
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import *
 import sqlite3
 import drastiriotita,diaxeirisieggrafou
 import datetime
@@ -32,7 +32,7 @@ class Main(QMainWindow):
         super().__init__()
         self.setWindowTitle("Βοηθός 3ου Γραφείου ")
         #self.setWindowIcon(QIcon("icons/icon.ico"))
-        self.setGeometry(450, 150, 1050, 500)
+        self.setGeometry(450, 150, 1050, 700)
         self.setFixedSize(self.size())
         self.users=dict()
         self.fillusers()       
@@ -228,7 +228,7 @@ class Main(QMainWindow):
         for i in reversed(range(self.dispdrastiriotites.rowCount())):
             self.dispdrastiriotites.removeRow(i)
         #query = cur.execute("SELECT id,perigrafi,dtapo,dtmexri,user_id from upoxrewseis where completence=?",("FALSE",) ).fetchall()
-        cur.execute("SELECT upoxrewseis.id,perigrafi, dtapo , dtmexri ,members.name FROM upoxrewseis  INNER JOIN members ON upoxrewseis.user_id = members.id WHERE completence= ?""",("FALSE",))
+        cur.execute("SELECT upoxrewseis.id,perigrafi, dtapo , dtmexri , members.name FROM upoxrewseis  INNER JOIN members ON upoxrewseis.user_id = members.id WHERE completence= ?""",("FALSE",))
         query=cur.fetchall()
        
         for row_data in query:

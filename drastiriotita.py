@@ -2,7 +2,8 @@ import sys,os
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
- 
+
+from PyQt5.QtCore import *
 import sqlite3
 import main
 import style
@@ -63,18 +64,7 @@ class addDrastiriotita(QWidget):
         self.simetoxesEntry = QTextEdit()
         self.simetoxesEntry.setStyleSheet(style.textEditStyle())
         self.lbluser=QLabel("Χειριστής:")        
-        self.user=QTableWidget()
-        self.user.setWordWrap(True)
-        self.user.setColumnCount(4)
-        self.user.setColumnHidden(0, True)
-        self.user.setHorizontalHeaderItem(0, QTableWidgetItem("id"))
-        self.user.setHorizontalHeaderItem(1, QTableWidgetItem("Βαθμός")) 
-        self.user.setHorizontalHeaderItem(2, QTableWidgetItem("Ονομ/μο"))        
-        self.user.setHorizontalHeaderItem(3, QTableWidgetItem("Τηλ. εσώτ"))        
-        self.user.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.user.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        self.user.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
-        self.user.setStyleSheet(style.lstStyle())
+        self.user=QLineEdit()
         self.uploadBtn=QPushButton("link")
         self.uploadBtn.setStyleSheet(style.ListBtnStyle())
         self.uploadBtn.clicked.connect(self.uploadImg)
@@ -137,17 +127,16 @@ class addDrastiriotita(QWidget):
         
         # for data in query:
         #     self.user.addItem(data[0]+" "+ data[1]+" "+ data[2])
- 
-        self.user.setFont(QFont("Times", 12))
-        for i in reversed(range(self.user.rowCount())):
-            self.user.removeRow(i)
-        query = self.cur.execute("SELECT id,vathmos,name,phone from members ORDER BY name ASC" ).fetchall() 
-        for row_data in query:
-            row_number = self.user.rowCount()
-            self.user.insertRow(row_number)
-            for column_number, data in enumerate(row_data):
-                self.user.setItem(row_number, column_number, QTableWidgetItem(str(data)))
-                self.user.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        query = self.cur.execute("SELECT name from members ORDER BY name ASC" ).fetchall() 
+        print(query)
+        lst=list()
+        for entry in query:
+            lst.append(entry[0])
+        #wordList = ["alpha", "omega", "omicron", "zeta"]
+        print(lst)
+        completer = QCompleter(lst, self)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.user.setCompleter(completer)
                 
     def uiclose(self):
         self.close()
@@ -209,20 +198,13 @@ class ChangeDrastiriotita(QWidget):
         self.id=id
         self.connectTODb()            
         self.findData()     
-    
         self.UI()
-        self.fillCbusers()        
         self.show()
-
-
-        #self.filepath=""
-        #self.filename=""
 
     def UI(self):
         self.widgets()
+        self.fillCbusers()
         self.layouts()
-
-
 
     def widgets(self):
         ###widgets top Layout
@@ -272,20 +254,9 @@ class ChangeDrastiriotita(QWidget):
         self.closeBtn = QPushButton("Κλείσιμο")
         self.closeBtn.setStyleSheet(style.ListBtnStyle())
         self.closeBtn.clicked.connect(self.uiclose)
-
         self.lbluser=QLabel("Χειριστής:")
-        self.user=QTableWidget()
-        self.user.setWordWrap(True)
-        self.user.setColumnCount(4)
-        self.user.setColumnHidden(0, True)
-        self.user.setHorizontalHeaderItem(0, QTableWidgetItem("id"))
-        self.user.setHorizontalHeaderItem(1, QTableWidgetItem("Βαθμός")) 
-        self.user.setHorizontalHeaderItem(2, QTableWidgetItem("Ονομ/μο"))        
-        self.user.setHorizontalHeaderItem(3, QTableWidgetItem("Τηλ. εσώτ"))        
-        self.user.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
-        self.user.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
-        self.user.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
-        self.user.setStyleSheet(style.lstStyle())
+        self.user=QLineEdit(self.xeirisths)
+
     def layouts(self):
 
         self.totalmainLayout=QHBoxLayout()
@@ -336,14 +307,16 @@ class ChangeDrastiriotita(QWidget):
 
     def findData(self):
         query=("SELECT * FROM upoxrewseis WHERE id=?")
-        stoixeia=self.cur.execute(query,(  self.id,)).fetchone()
+        stoixeia=self.cur.execute("SELECT upoxrewseis.id,perigrafi,sxetiko,dtapo,dtmexri,perioxi,apaitiseis,completence,members.name FROM upoxrewseis INNER JOIN members ON upoxrewseis.user_id = members.id WHERE upoxrewseis.id= ?""",(self.id,)).fetchone() 
         self.perigrafi1=  stoixeia[1]
         self.sxetiko1=  stoixeia[2]
         self.apo=  stoixeia[3]
         self.mexri=  stoixeia[4]
         self.perioxi1=  stoixeia[5]
         self.apaitiseis1=  stoixeia[6]
-        self.link1=  stoixeia[7]
+        #self.link1=  stoixeia[7]
+        self.completence= stoixeia[7]
+        self.xeirisths=stoixeia[8]
 
     def passDttotext(self):
         self.dtapo.setText(self.dtdrastiriotitas.selectedDate().toString(QtCore.Qt.ISODate))
@@ -368,7 +341,8 @@ class ChangeDrastiriotita(QWidget):
         self.apo=  self.dtapo.text()
         self.mexri=  self.dtmexri.text()
         self.perioxi1=    self.perioxiEntry.text()
-        self.apaitiseis1=  self.simetoxesEntry.toPlainText()   
+        self.apaitiseis1=  self.simetoxesEntry.toPlainText() 
+          
         try:
             query="UPDATE upoxrewseis set perigrafi=?, sxetiko=?, dtapo=?, dtmexri=?, perioxi=?, apaitiseis=?,link=? WHERE id=?"
             self.cur.execute(query,(self.perigrafi1,self.sxetiko1,self.apo,self.mexri,self.perioxi1,self.apaitiseis1,"x",self.id))
@@ -400,16 +374,15 @@ class ChangeDrastiriotita(QWidget):
         
         # for data in query:
         #     self.user.addItem(data[0]+" "+ data[1]+" "+ data[2])
- 
-        self.user.setFont(QFont("Times", 12))
-        for i in reversed(range(self.user.rowCount())):
-            self.user.removeRow(i)
-        query = self.cur.execute("SELECT id,vathmos,name,phone from members ORDER BY name ASC" ).fetchall() 
- 
+        query = self.cur.execute("SELECT name from members ORDER BY name ASC" ).fetchall() 
+        print(query)
+        lst=list()
+        for entry in query:
+            lst.append(entry[0])
+        #wordList = ["alpha", "omega", "omicron", "zeta"]
+        print(lst)
+        completer = QCompleter(lst, self)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.user.setCompleter(completer)
 
-        for row_data in query:
-            row_number = self.user.rowCount()
-            self.user.insertRow(row_number)
-            for column_number, data in enumerate(row_data):
-                self.user.setItem(row_number, column_number, QTableWidgetItem(str(data)))
-                self.user.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        
