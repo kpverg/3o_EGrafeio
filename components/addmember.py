@@ -22,10 +22,12 @@ class AddMember(QWidget):
         self.setFixedSize(self.size())
         
         self.UI()
+        
         self.show()
 
     def UI(self):
         self.widgets()
+        self.fillCbusers()
         self.Layouts()
 
     def widgets(self):
@@ -99,6 +101,16 @@ class AddMember(QWidget):
                 QMessageBox.information(self,"Warning","Η εγγραφή δεν καταχωρήθηκεd")
         else:
             QMessageBox.information(self, "Warning", "Συμπληρώστε τα κενά")
+    
+    def fillCbusers(self):
+        query = cur.execute("SELECT name from members ORDER BY name ASC" ).fetchall() 
+        lst=list()
+        for entry in query:
+            lst.append(entry[0])
+        completer = QCompleter(lst, self)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        self.nameEntry.setCompleter(completer)
+        
     def delemberFunc(self):
         txtname=self.nameEntry.text()
         found=True

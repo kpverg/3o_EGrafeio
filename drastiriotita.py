@@ -124,16 +124,11 @@ class addDrastiriotita(QWidget):
         self.dtapo.setText(self.dtdrastiriotitas.selectedDate().toString(QtCore.Qt.ISODate))
         
     def fillCbusers(self):
-        
-        # for data in query:
-        #     self.user.addItem(data[0]+" "+ data[1]+" "+ data[2])
         query = self.cur.execute("SELECT name from members ORDER BY name ASC" ).fetchall() 
-        print(query)
         lst=list()
         for entry in query:
             lst.append(entry[0])
         #wordList = ["alpha", "omega", "omicron", "zeta"]
-        print(lst)
         completer = QCompleter(lst, self)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.user.setCompleter(completer)
@@ -162,29 +157,30 @@ class addDrastiriotita(QWidget):
             self.dtmexri.clear()
    
     def addxwsimo(self):
-       perigrafi=self.drastiriotitaEntry.text().upper()
-       sxetiko=self.sxetikoEntry.text().upper()
-       perioxi=  self.perioxiEntry.text().upper()
-       apaitiseis=self.simetoxesEntry.toPlainText().upper()
-       dtapo=self.dtapo.text()
-       dtmexri=self.dtmexri.text()
-       klink=self.filepath
-       listMember=[]
-       for i in range(0,4):
-           listMember.append(self.user.item(self.user.currentRow(),i).text())
-       memberId=listMember[0]
+        perigrafi=self.drastiriotitaEntry.text().upper()
+        sxetiko=self.sxetikoEntry.text().upper()
+        perioxi=  self.perioxiEntry.text().upper()
+        apaitiseis=self.simetoxesEntry.toPlainText().upper()
+        dtapo=self.dtapo.text()
+        dtmexri=self.dtmexri.text()
+        klink=self.filepath
+        xeiristis=self.user.text()
+        try:
+            userId =self.cur.execute("SELECT id FROM members WHERE name = ? ", ( xeiristis,)).fetchone()
+            print(userId)
+        except:
+           QMessageBox.information(self, "warning", "pROBLEM το όνομα χειριστή")
+           userId=0
  
-       if (perigrafi!="" and sxetiko!="" and apaitiseis !=""and perioxi !="" and dtapo!=""and dtmexri!="" ):
-           try:
-               query="INSERT INTO upoxrewseis (perigrafi,sxetiko,dtapo,dtmexri,perioxi,apaitiseis,link,user_id) VALUES (?,?,?,?,?,?,?,?)"
-               self.cur.execute(query,(perigrafi, sxetiko,dtapo, dtmexri,perioxi,apaitiseis,klink,memberId))
-               self.con.commit()
-               QMessageBox.information(self,"info","Η δραστηριότητα Καταχωρήθηκε")
-
-           except:
-               QMessageBox.information(self,"info","Δεν ολοκληρώθηκε η καταχώρηση")
-
-       else:
+        if (perigrafi!="" and sxetiko!="" and apaitiseis !=""and perioxi !="" and dtapo!=""and dtmexri!="" ):
+            try:
+                query="INSERT INTO upoxrewseis (perigrafi,sxetiko,dtapo,dtmexri,perioxi,apaitiseis,link,user_id) VALUES (?,?,?,?,?,?,?,?)"
+                self.cur.execute(query,(perigrafi, sxetiko,dtapo, dtmexri,perioxi,apaitiseis,klink,userId[0]))
+                self.con.commit()
+                QMessageBox.information(self,"info","Η δραστηριότητα Καταχωρήθηκε")
+            except:
+                QMessageBox.information(self,"info","Δεν ολοκληρώθηκε η καταχώρηση")
+        else:
            QMessageBox.information(self,"info","Συμπληρώστε τα πεδία")
     
 class ChangeDrastiriotita(QWidget):
@@ -342,10 +338,16 @@ class ChangeDrastiriotita(QWidget):
         self.mexri=  self.dtmexri.text()
         self.perioxi1=    self.perioxiEntry.text()
         self.apaitiseis1=  self.simetoxesEntry.toPlainText() 
-          
+        self.xeiristis=self.user.text()
         try:
-            query="UPDATE upoxrewseis set perigrafi=?, sxetiko=?, dtapo=?, dtmexri=?, perioxi=?, apaitiseis=?,link=? WHERE id=?"
-            self.cur.execute(query,(self.perigrafi1,self.sxetiko1,self.apo,self.mexri,self.perioxi1,self.apaitiseis1,"x",self.id))
+            userId =self.cur.execute("SELECT id FROM members WHERE name = ? ", ( self.xeiristis,)).fetchone()
+            print(userId[0])
+        except:
+           QMessageBox.information(self, "warning", "pROBLEM το όνομα χειριστή")
+           userId=0
+        try:
+            query="UPDATE upoxrewseis set perigrafi=?, sxetiko=?, dtapo=?, dtmexri=?, perioxi=?, apaitiseis=?,link=?,user_id=?  WHERE id=?"
+            self.cur.execute(query,(self.perigrafi1,self.sxetiko1,self.apo,self.mexri,self.perioxi1,self.apaitiseis1,"x",userId[0],self.id))
             self.con.commit()
             QMessageBox.information(self,"info","product has been updated")
         except:
