@@ -58,10 +58,10 @@ class addDrastiriotita(QWidget):
         self.sxetikoEntry = QLineEdit("Φ.   /   /Σ.   /")
         self.lblPerioxi = QLabel("Περιοχή:")
         self.perioxiEntry = QLineEdit()
-        self.perioxiEntry.setPlaceholderText(" Εισάγετε Περιοχή")
+        self.perioxiEntry.setText("Έδρα Ταξχίας")
 
         self.simetoxesLbl = QLabel("Απαιτήσεις:")
-        self.simetoxesEntry = QTextEdit()
+        self.simetoxesEntry = QTextEdit("Υπόψη")
         self.simetoxesEntry.setStyleSheet(style.textEditStyle())
         self.lbluser=QLabel("Χειριστής:")        
         self.user=QLineEdit()
@@ -74,7 +74,9 @@ class addDrastiriotita(QWidget):
         self.closeBtn = QPushButton("Κλείσιμο")
         self.closeBtn.setStyleSheet(style.ListBtnStyle())
         self.closeBtn.clicked.connect(self.uiclose)
-        
+        self.clearBtn = QPushButton("Καθαρισμός")
+        self.clearBtn.setStyleSheet(style.ListBtnStyle())
+        self.clearBtn.clicked.connect(self.uiclear)
 
     def layouts(self):
         self.totalmainLayout=QHBoxLayout()
@@ -108,9 +110,9 @@ class addDrastiriotita(QWidget):
         self.bottomLayout.addRow(self.lbluser, self.user)
         self.bottomLayout.addRow(self.simetoxesLbl, self.simetoxesEntry)
         self.bottomLayout.addRow("Upload", self.uploadBtn)
-        self.bottomLayout.addRow("Submit", self.submitBtn)
+        self.bottomLayout.addRow("Submit", self.submitBtn)             
+        self.bottomLayout.addRow("clear",  self.clearBtn)
         self.bottomLayout.addRow("close",  self.closeBtn)       
- 
         self.bottomFrame.setLayout( self.bottomLayout)
 
         self.mainLayout.addWidget(self.topFrame)
@@ -132,9 +134,23 @@ class addDrastiriotita(QWidget):
         completer = QCompleter(lst, self)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.user.setCompleter(completer)
-                
+        self.user.setText("Βέργης Κωνσταντίνος")      
     def uiclose(self):
         self.close()
+        
+    def uiclear(self):
+        self.ClearAllFields()   
+             
+    def ClearAllFields(self):
+        self.drastiriotitaEntry.setText("")
+        self.sxetikoEntry.setText("")
+        self.perioxiEntry.setText("")
+        self.simetoxesEntry.setText("")
+        self.dtapo.setText("")
+        self.dtmexri.setText("")
+        self.user.setText("")     
+        
+         
         
     def passDttotextmexri(self):
         self.dtmexri.setText(self.dtdrastiriotitas.selectedDate().toString(QtCore.Qt.ISODate))
@@ -178,10 +194,12 @@ class addDrastiriotita(QWidget):
                 self.cur.execute(query,(perigrafi, sxetiko,dtapo, dtmexri,perioxi,apaitiseis,klink,userId[0]))
                 self.con.commit()
                 QMessageBox.information(self,"info","Η δραστηριότητα Καταχωρήθηκε")
+                self.ClearAllFields()
             except:
                 QMessageBox.information(self,"info","Δεν ολοκληρώθηκε η καταχώρηση")
         else:
            QMessageBox.information(self,"info","Συμπληρώστε τα πεδία")
+ 
     
 class ChangeDrastiriotita(QWidget):
     def __init__(self,id,username):
@@ -252,6 +270,9 @@ class ChangeDrastiriotita(QWidget):
         self.closeBtn.clicked.connect(self.uiclose)
         self.lbluser=QLabel("Χειριστής:")
         self.user=QLineEdit(self.xeirisths)
+        self.clearBtn = QPushButton("Καθαρισμός")
+        self.clearBtn.setStyleSheet(style.ListBtnStyle())
+        self.clearBtn.clicked.connect(self.uiclear)
 
     def layouts(self):
 
@@ -289,6 +310,7 @@ class ChangeDrastiriotita(QWidget):
         self.bottomLayout.addRow("Upload", self.uploadBtn)
         self.bottomLayout.addRow("Submit", self.submitBtn)
         self.bottomLayout.addRow("Delete", self.btnDel)
+        self.bottomLayout.addRow("clear",  self.clearBtn)
         self.bottomLayout.addRow("close",  self.closeBtn)       
          
         self.bottomFrame.setLayout( self.bottomLayout)
@@ -386,5 +408,17 @@ class ChangeDrastiriotita(QWidget):
         completer = QCompleter(lst, self)
         completer.setCaseSensitivity(Qt.CaseInsensitive)
         self.user.setCompleter(completer)
+        
+    def uiclear(self):
+        self.ClearAllFields()   
+             
+    def ClearAllFields(self):
+        self.drastiriotitaEntry.setText("")
+        self.sxetikoEntry.setText("")
+        self.perioxiEntry.setText("")
+        self.simetoxesEntry.setText("")
+        self.dtapo.setText("")
+        self.dtmexri.setText("")
+        self.user.setText("")   
 
         

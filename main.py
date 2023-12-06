@@ -1,15 +1,17 @@
-#!/usr/bin/env python3.
+#!/usr/bin/env python3 shebang 
 import sys, os
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import sqlite3
 import drastiriotita,diaxeirisieggrafou
+
 import datetime
 import style
 
 from PyQt5 import QtCore
 import components.addmember
+import components.diaxeirisidoc
 #os.path.join(os.path.abspath("../../../"), "lib")
 con = sqlite3.connect("3o_grafeio.db")
 cur = con.cursor()
@@ -67,6 +69,11 @@ class Main(QMainWindow):
         self.tb.addAction(self.addMember)
         self.addMember.triggered.connect(self.funcAddMember)
         self.tb.addSeparator()
+        self.grammateia = QAction(QIcon('icons/add_file.png'), "Εξερχόμενα", self)
+        self.tb.addAction(self.grammateia)
+        self.grammateia.triggered.connect(self.funcAddDoc)
+        self.tb.addSeparator()    
+        
         
     def tabWigdet(self):
         self.tabs = QTabWidget()
@@ -199,6 +206,10 @@ class Main(QMainWindow):
                 
     def funcAddMember(self):
         self.newMember= components.addmember.AddMember()
+        
+        
+    def funcAddDoc(self):
+        self.newDoc=components.diaxeirisidoc.kataxwrhsheggrafou()
         
     def addnewdrastriotita(self):
         self.newdrastitita = drastiriotita.addDrastiriotita()
