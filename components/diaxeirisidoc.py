@@ -6,18 +6,39 @@ import sqlite3,shutil
 from PIL import Image
 import shutil 
 from datetime import datetime
+import pandas as pd
+from xlsxwriter import Workbook
+import style
 con=sqlite3.connect("grammateia.db")
 cur=con.cursor()
 
 current_date = datetime.now()
-formatted_date = current_date.strftime("%Y_%m_%d")
+greek_month_names = {
+    1: "Ιαν",
+    2: "Φεβ",
+    3: "Μάρ",
+    4: "Απρ",
+    5: "Μάι",
+    6: "Ιούν",
+    7: "Ιούλ",
+    8: "Αύγ",
+    9: "Σεπ",
+    10: "Οκτ",
+    11: "Νοε",
+    12: "Δεκ"
+}
+greek_month = greek_month_names[current_date.month]
+formatted_date =f"{current_date.year} {greek_month} {current_date.day}"
+current_date.strftime(" %d  %b %Y")
+
+
 
 class kataxwrhsheggrafou(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Διαχείριση Εγγράφου")
+        self.setWindowTitle("Αριθμοί Υποφακέλου")
         self.setWindowIcon(QIcon("icons/icon.ico"))
-        self.setGeometry(450,150,550,550)
+        self.setGeometry(450,150,550,750)
         self.setFixedSize(self.size())
         self.UI()
         self.show()
@@ -32,10 +53,28 @@ class kataxwrhsheggrafou(QWidget):
         self.addProducyimg=QLabel()
         self.img=QPixmap("icons/add_file.png")
         self.addProducyimg.setPixmap(self.img)
+        self.addProducyimg.setAlignment(Qt.AlignCenter)
         ####widgets of bottom layout####
         ####widgets left layout####
-        self.eiserxomeno = QLabel("Εισερχόμενο")
-        self.renamer = QPushButton("Rename Files")
+   
+
+        self.btndel = QPushButton("Διαγραφή όλων")
+        self.btndel.setStyleSheet(style.ListBtnStyle())
+        self.btndel.clicked.connect(self.deleteEverything)
+
+        self.btnupdate = QPushButton("Update")
+        self.btnupdate.setStyleSheet(style.ListBtnStyle())
+        self.btnupdate.clicked.connect(self.updateTables)
+
+        self.btnfind = QPushButton("Εύρεση")
+        self.btnfind.setStyleSheet(style.ListBtnStyle())
+        self.btnfind.clicked.connect(self.findEntry)
+
+        self.btnprint = QPushButton("Εκτύπωση όλων")
+        self.btnprint.setStyleSheet(style.ListBtnStyle())
+        self.btnprint.clicked.connect( self.printDocs)
+
+
         #self.renamer.clicked.connect(self.rename_pass)
         self.arxeiothetisibtn= QPushButton("Αρχειοθέτηση \nΕισερχομένων")
         #self.arxeiothetisibtn.clicked.connect(self.arxeiothetisifunc)
@@ -48,39 +87,27 @@ class kataxwrhsheggrafou(QWidget):
         tableNames = con.execute(query).fetchall()
 
         for name in tableNames:
-            if name[0] != "thematologio" and name[0] != "upoxrewseis" and name[0] != "sqlite_sequence":
+            if  name[0] != "sqlite_sequence":
                 file_name=name[0]
-
-
                 self.fakelosEntry.addItem(file_name)
         self.fakelosEntry.addItem("Άλλο...")
+        self.fakelosEntry.model().sort(0)
 
         self.fakelosEntry.currentIndexChanged.connect(self.updatecombo)
         self.ekserxomenoLbl=QLabel("Αριθμός θεματολογίου")
-        self.arthematologiouEntry=QLabel()       # edw thelw na balw enable=false
-        self.protokolloLbl = QLabel("Αριθμός Πρωτόκολλου:")
-        self.arprotokollouEntry = QLineEdit()
-        self.arprotokollouEntry.setPlaceholderText("Εισάγετε Αριθμό Πρωτοκόλλου")
-        self.arprotokollouEntry.returnPressed.connect(self.auto_fillQline)
-
-        self.sxedioLbl = QLabel("Αριθμός Σχεδίου:")
-        self.arithmosSxediouEntry = QLineEdit()
-        self.arithmosSxediouEntry.setPlaceholderText("Εισάγετε Αριθμό Σχεδίου")
-        self.arithmosSxediouEntry.returnPressed.connect(self.auto_fillQline)
+        self.arthematologiouEntry=QLineEdit()       # edw thelw na balw enable=false
         self.dtLbl = QLabel("Ημερομηνία εγγράφου:")
         self.dteggradouEntry = QLineEdit()
- 
         self.dteggradouEntry.setText(formatted_date)
-        self.dteggradouEntry.returnPressed.connect(self.auto_fillQline)
-
         self.monadaLbl = QLabel("Μονάδα/γραφείο:")
         self.monadaEntry = QLineEdit()
         self.monadaEntry.setText( "33 ΜΚ ΤΑΞ/3o ΕΓ")
-        self.monadaEntry.returnPressed.connect(self.auto_fillQline)
+
 
         self.pliristaytotitalbl= QLabel("Πλήρης Ταυτότητα:")
         self.pliristaytotitaEntry = QLineEdit()
-        self.uploadBtn=QPushButton("Upload")
+        self.uploadBtn=QPushButton("Καταχώρηση")
+        self.uploadBtn.setStyleSheet(style.ListBtnStyle())
         self.uploadBtn.clicked.connect(self.fillTable)
         #self.submitBtn = QPushButton("Submit")
         #self.submitBtn.clicked.connect(self.fillTable)
@@ -91,10 +118,10 @@ class kataxwrhsheggrafou(QWidget):
         self.bottomleftLayout=QVBoxLayout()
         self.bottomrightLayout=QFormLayout()
         self.topFrame = QFrame()
-        # self.topFrame.setStyleSheet(style.productTopFrame())
+        self.topFrame.setStyleSheet(style.productTopFrame())
         self.bottomFrame = QFrame()
-        #self.bottomLayout = QFormLayout()
-        # self.bottomFrame.setStyleSheet(style.productbottomFrame())
+        
+        self.bottomFrame.setStyleSheet(style.productbottomFrame())
 
         ######add widgets######
         ### widget top Layout#####
@@ -103,22 +130,26 @@ class kataxwrhsheggrafou(QWidget):
         ### widget botleft Layout#####
 
         ### widget form Layout#####
-        self.bottomrightLayout.addRow( self.ekserxomeno )
+  
         self.bottomrightLayout.addRow(  self.prodManufLbl,self.fakelosEntry)
         self.bottomrightLayout.addRow(   self.ekserxomenoLbl,self.arthematologiouEntry )
-        self.bottomrightLayout.addRow( self.protokolloLbl,self.arprotokollouEntry)
-        self.bottomrightLayout.addRow( self.sxedioLbl,self.arithmosSxediouEntry)
+  
+ 
         self.bottomrightLayout.addRow( self.dtLbl,self.dteggradouEntry)
         self.bottomrightLayout.addRow( self.monadaLbl ,self.monadaEntry)
         self.bottomrightLayout.addRow(  self.pliristaytotitalbl, self.pliristaytotitaEntry)
         self.bottomrightLayout.addRow("Καταχώρηση", self.uploadBtn)
+        self.bottomrightLayout.addRow("Διαγραφή", self.btndel)
+        self.bottomrightLayout.addRow("Update", self.btnupdate)
+        self.bottomrightLayout.addRow("Εύρεση",self.btnfind)
+        self.bottomrightLayout.addRow("Εκτύπωση όλων",self.btnprint)       
         self.bottonmainlayout.addLayout(self.bottomleftLayout)
         self.bottonmainlayout.addLayout(self.bottomrightLayout)
         self.bottomFrame.setLayout( self.bottonmainlayout)
 
 
-        self.mainLayout.addWidget(self.topFrame)
-        self.mainLayout.addWidget(self.bottomFrame)
+        self.mainLayout.addWidget(self.topFrame,50)
+        self.mainLayout.addWidget(self.bottomFrame,50)
         self.setLayout(self.mainLayout)
   
     def updatecombo(self):
@@ -144,65 +175,87 @@ class kataxwrhsheggrafou(QWidget):
         cur.execute("CREATE TABLE IF NOT EXISTS " + table_name + "(id INTEGER PRIMARY KEY AUTOINCREMENT,perigrafi TEXT,tautotita TEXT, date_paralavis TEXT,eiserxomeno_exerxomeno TEXT)")
         con.commit()
         max_id=cur.execute("SELECT MAX(id) FROM "+table_name).fetchone()
-        print(max_id[0])
+
         try:
-           int(max_id[0])
-           self.arthematologiouEntry.setText(str(max_id[0]+1))
+            max=str(max_id[0]+1)
         except:
-            self.arthematologiouEntry.setText(str(1))
+            max=str(1)
+        self.arthematologiouEntry.setText(max)
+        self.pliristaytotitaEntry.setText( f"{table_name.replace('f', 'Φ')}/{max}")
+
     def fillTable(self):
         global table_name
-        tautotita=str(self.pliristaytotitaEntry)
-        date_paralavis=datetime.datetime.now()
-        eiserxomeno_exerxomeno="ΕΞΕΡΧΟΜΕΝΟ"
-        if tautotita!="":
+        # tautotita=str(self.pliristaytotitaEntry)
+        # date_paralavis=str(self.dteggradouEntry)
+
+        if self.pliristaytotitaEntry.text()!="":
             try:
-                query = "INSERT INTO " + table_name + " (perigrafi,tautotita,date_paralavis,eiserxomeno_exerxomeno) VALUES (?,?,?,?)"
-                cur.execute(query, ("", tautotita, date_paralavis, eiserxomeno_exerxomeno))#perigrafi den exw
+                query = "INSERT INTO " + table_name + " (perigrafi,tautotita,date_paralavis) VALUES (?,?,?)"
+                cur.execute(query, (self.monadaEntry.text(), self.pliristaytotitaEntry.text(), self.dteggradouEntry.text()))#perigrafi den exw
                 con.commit()
+                QMessageBox.information(self,"info","Η καταχώρηση ολοκληρώθηκε")                
             except:
                 QMessageBox.information(self,"info","Η καταχώρηση δεν ολοκληρώθηκε")
-    def auto_fillQline(self):
-        pass
-       # if( self.fakelosEntry.currentText()!=""and self.arthematologiouEntry.text()   !=""  and  self.arprotokollouEntry.text()!=""and self.arithmosSxediouEntry.text()!=""and self.dteggradouEntry.text()!=""and self.monadaEntry.text()!=""):
-      #      self.pliristaytotitaEntry.setText(self.fakelosEntry.currentText() +"_"+ self.arthematologiouEntry.text() +"_"+self.arprotokollouEntry.text()+"_"+self.arithmosSxediouEntry.text()+"_"+self.dteggradouEntry.text()+"_"+self.monadaEntry.text())
-    def arxeiothetisifunc(self):
-        directory = QFileDialog.getExistingDirectory()
-        for root, dirs, files in os.walk(directory):
-            for fname in files:
-                if ".pdf" in fname:
-                    old_name = fname
-                    new_name = "f_"+old_name[2:5]
-                    ar_fak=str(old_name[2:3])
-                    ar_upofakfak=str(old_name[3:5])
-                    cur.execute("CREATE TABLE IF NOT EXISTS " +  new_name + "(id INTEGER PRIMARY KEY AUTOINCREMENT,link TEXT,tautotita TEXT, date_paralavis TEXT,eiserxomeno_exerxomeno TEXT)")
-                    con.commit()
-                    max_id = cur.execute("SELECT MAX(id) FROM " + new_name).fetchone()
-                    try:
-                        int(max_id)
-                        max_id+=1
-                    except :
-                        max_id=1
-                    try:
-                        old_name = os.path.join(root, fname)
-                        new_nm = os.path.join(root, str(max_id)+"__"+fname)
-                        os.rename(old_name, new_nm)
-                    except:
-                        pass
-                new_path="/home/thedoctorlptp/Επιφάνεια εργασίας/ΘΕΜΑΤΟΛΟΓΙΟ"
-                if not os.path.exists(new_path):
-                    os.makedirs(new_path)
-                new_path = "/home/thedoctorlptp/Επιφάνεια εργασίας/ΘΕΜΑΤΟΛΟΓΙΟ/"+ ar_fak +"00"
-                if not os.path.exists(new_path):
-                    os.makedirs(new_path)
-                new_path = "/home/thedoctorlptp/Επιφάνεια εργασίας/ΘΕΜΑΤΟΛΟΓΙΟ/"+ar_fak+"00/"+ar_fak+ar_upofakfak
-                if not os.path.exists(new_path):
-                    os.makedirs(new_path)
-                shutil.move(new_nm , new_path+"/"+ str(max_id)+"__"+fname)
-                link=new_path+"/"+ str(max_id)+"__"+fname
-                tautotita=str(max_id)+"__"+fname
-                date_paralavis=datetime.datetime.now()
-                eiserxomeno_exerxomeno="ΕΙΣΕΡΧΟΜΕΝΟ"
-                query = "INSERT INTO " + new_name + " (link,tautotita,date_paralavis,eiserxomeno_exerxomeno) VALUES (?,?,?,?)"
-                cur.execute(query, (link, tautotita, date_paralavis, eiserxomeno_exerxomeno))  # perigrafi den exw
-                con.commit()
+
+    def updateTables(self):
+        try:
+            cur.execute("UPDATE " + table_name + " SET perigrafi=?, tautotita=?, date_paralavis=? WHERE id=?",
+            (        self.monadaEntry.text()  ,  self.pliristaytotitaEntry.text(), self.dteggradouEntry.text(),  int(self.arthematologiouEntry.text() )))
+            con.commit()
+            QMessageBox.information(self,"info","Η καταχώρηση Ενημερώθηκε") 
+        except:
+            QMessageBox.information(self,"info","Η καταχώρηση δεν Ενημερώθηκε")
+
+    def findEntry(self):
+        x=int(self.arthematologiouEntry.text())
+        data=cur.execute("SELECT * FROM " + table_name + " WHERE id = ?", ( x,)).fetchone()
+        print(data[0])
+        self.arthematologiouEntry.setText(str(data[0])) 
+        self.dteggradouEntry.setText(data[3])  
+        self.monadaEntry.setText(data[1])  
+        self.pliristaytotitaEntry.setText(data[2]) 
+
+    def printDocs(self):
+ 
+        cur = con.cursor()
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        table_names = cur.fetchall()
+        table_names = [table[0] for table in table_names]
+
+# Δημιουργία ενός Excel writer
+        excel_writer = pd.ExcelWriter('output_file.xlsx', engine='xlsxwriter')
+
+# Επεξεργασία κάθε πίνακα και εισαγωγή των δεδομένων στο αντίστοιχο worksheet
+        for table_name in table_names:
+            query = f"SELECT * FROM {table_name}"
+            df = pd.read_sql_query(query, con)
+            df.to_excel(excel_writer, sheet_name=table_name, index=False)
+
+# Κλείσιμο του Excel writer για να αποθηκευτούν οι αλλαγές στο αρχείο
+        #excel_writer.save()
+        excel_writer.close()
+
+# Κλείσιμο της σύνδεσης με τη βάση δεδομένων
+
+    def deleteEverything(self):
+        result = QMessageBox.question(None,"Data Deletion Confirmation",
+        f"Do you want to delete all data ?",
+        QMessageBox.Yes | QMessageBox.No,
+        QMessageBox.No
+    )
+        if result == QMessageBox.Yes:
+            cur = con.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            table_names = cur.fetchall()
+            table_names = [table[0] for table in table_names]
+            for table_name in table_names:
+                cur.execute(f"DELETE FROM {table_name};")
+                cur.execute(f"DELETE FROM sqlite_sequence WHERE name = '{table_name}';")
+            con.commit()
+            QMessageBox.information(None, "Success", f"All data has been deleted.")
+        else:
+            QMessageBox.information(None, "Cancellation", "Data deletion has been canceled.")
+
+
+
+
