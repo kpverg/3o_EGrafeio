@@ -3,3 +3,4 @@ pip install pymupdf pytesseract
 sudo apt-get install tesseract-ocr
 sudo apt-get install python3-tk
 pip install schedule
+pip install pdf2image

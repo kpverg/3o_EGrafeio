@@ -29,7 +29,7 @@ pattern_s = re.compile('Σ\..*')
 pattern_date = re.compile(
     '[0-9]{1,2}\s*(Ιαν|Φεβ|Μαρ|Απρ|Μαι|Μαϊ|Ιουν|Ιούν|Ιουλ|Ιούλ|Αυγ|Σεπ|Οκτ|Νοε|Νοέ|Δεκ)\s*[0-9]{2,4}')
 
-pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+#pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 class DocumentsManager:
     def __init__(self):
         self.selectRootPath=pathmod.FolderPathManager()
@@ -59,7 +59,8 @@ class DocumentsManager:
             img = Image.frombytes("RGB", [half_pixmap.width, half_pixmap.height], half_pixmap.samples)
 
             # Perform OCR on the image
-            self.text = pytesseract.image_to_string(img, lang='ell')  # Use 'eng+ell' for English and Greek
+            self.text = pytesseract.image_to_string(img, lang='ell+grc',
+                                    config="--oem 6 ")  # Use 'eng+ell' for English and Greek
             # select_folder()
             self.thema=self.extractThemaFromDocument()
             
