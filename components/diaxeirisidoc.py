@@ -9,7 +9,7 @@ from datetime import datetime
 import pandas as pd
 from xlsxwriter import Workbook
 import style
-con=sqlite3.connect("grammateia.db")
+con=sqlite3.connect(os.path.abspath('db_Servises/grammateia.db'))
 cur=con.cursor()
 
 current_date = datetime.now()
@@ -223,7 +223,8 @@ class kataxwrhsheggrafou(QWidget):
         table_names = [table[0] for table in table_names]
 
 # Δημιουργία ενός Excel writer
-        excel_writer = pd.ExcelWriter('output_file.xlsx', engine='xlsxwriter')
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+        excel_writer = pd.ExcelWriter(os.path.join(desktop_path, 'output_file.xlsx'), engine='xlsxwriter')
 
 # Επεξεργασία κάθε πίνακα και εισαγωγή των δεδομένων στο αντίστοιχο worksheet
         for table_name in table_names:
@@ -232,6 +233,7 @@ class kataxwrhsheggrafou(QWidget):
             df.to_excel(excel_writer, sheet_name=table_name, index=False)
 
 # Κλείσιμο του Excel writer για να αποθηκευτούν οι αλλαγές στο αρχείο
+       
         #excel_writer.save()
         excel_writer.close()
 

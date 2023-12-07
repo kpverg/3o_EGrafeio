@@ -4,16 +4,20 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 import sqlite3
-import drastiriotita,diaxeirisieggrafou
-
 import datetime
 import style
 
 from PyQt5 import QtCore
 import components.addmember
 import components.diaxeirisidoc
+import components.FindDocument
+import components.drastiriotita
+
+from PIL import Image
+Image.warnings.simplefilter('ignore', Image.DecompressionBombWarning)
+
 #os.path.join(os.path.abspath("../../../"), "lib")
-con = sqlite3.connect("3o_grafeio.db")
+con = sqlite3.connect("db_Servises/3o_grafeio.db")
 cur = con.cursor()
 months={1:"Ιανουάριος",
         2:"Φεβρουάριος",
@@ -73,6 +77,10 @@ class Main(QMainWindow):
         self.tb.addAction(self.grammateia)
         self.grammateia.triggered.connect(self.funcAddDoc)
         self.tb.addSeparator()    
+        self.findFi = QAction(QIcon('icons/xamos2.png'), "Βρες Έγγραφα", self)
+        self.tb.addAction(self.findFi)
+        self.findFi.triggered.connect(self.funcFIDoc)
+        self.tb.addSeparator() 
         
         
     def tabWigdet(self):
@@ -189,7 +197,7 @@ class Main(QMainWindow):
             listDrastiriotita.append(self.dispdrastiriotites.item(self.dispdrastiriotites.currentRow(),i).text())
         drastiriotitaId=listDrastiriotita[0]
         username=listDrastiriotita[3]
-        self.displayMember=drastiriotita.ChangeDrastiriotita(drastiriotitaId,username)
+        self.displayMember=components.drastiriotita.ChangeDrastiriotita(drastiriotitaId,username)
 
     def sorttolist(self):
         self.tasks.clear()
@@ -206,13 +214,15 @@ class Main(QMainWindow):
                 
     def funcAddMember(self):
         self.newMember= components.addmember.AddMember()
-        
+    def funcFIDoc(self):
+ 
+        self.findDoc=components.FindDocument.FileManagerApp()
         
     def funcAddDoc(self):
         self.newDoc=components.diaxeirisidoc.kataxwrhsheggrafou()
         
     def addnewdrastriotita(self):
-        self.newdrastitita = drastiriotita.addDrastiriotita()
+        self.newdrastitita = components.drastiriotita.addDrastiriotita()
 
     def searchdrastiriotita(self):
         value = self.searchEntry.text().upper()
@@ -513,7 +523,7 @@ class selectRangeOfDates(QWidget):
         self.setLayout(self.mainLayout)
         
     def connectTODb(self):
-        self.con=sqlite3.connect("3o_grafeio.db")
+        self.con=sqlite3.connect("db_Servises/3o_grafeio.db3o_grafeio.db")
         self.cur=self.con.cursor()
         
     def Layouts(self):

@@ -120,7 +120,7 @@ class addDrastiriotita(QWidget):
         #self.simetoxesEntry.setStyleSheet(style.textEditStyle())
         self.setLayout(self.mainLayout)
     def connectTODb(self):
-            self.con=sqlite3.connect("3o_grafeio.db")
+            self.con=sqlite3.connect(os.path.abspath('db_Servises/3o_grafeio.db'))
             self.cur=self.con.cursor()
     def passDttotext(self):
         self.dtapo.setText(self.dtdrastiriotitas.selectedDate().toString(QtCore.Qt.ISODate))
@@ -320,7 +320,7 @@ class ChangeDrastiriotita(QWidget):
 
         self.setLayout(self.mainLayout)
     def connectTODb(self):
-            self.con=sqlite3.connect("3o_grafeio.db")
+            self.con=sqlite3.connect(os.path.abspath('db_Servises/3o_grafeio.db'))
             self.cur=self.con.cursor()
 
     def findData(self):

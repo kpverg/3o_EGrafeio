@@ -8,11 +8,6 @@ from PIL import Image
 
 
 
-con=sqlite3.connect("3o_grafeio.db")
-cur=con.cursor()
-
-defaultImg="store.png"
-
 class AddMember(QWidget):
     def __init__(self):
         super().__init__()
@@ -20,7 +15,8 @@ class AddMember(QWidget):
         self.setWindowIcon(QIcon("icons/icon.ico"))
         self.setGeometry(450,150,350,550)
         self.setFixedSize(self.size())
-        
+        self.con=sqlite3.connect(os.path.abspath('db_Servises/3o_grafeio.db'))
+        self.cur=self.con.cursor()
         self.UI()
         
         self.show()
@@ -91,8 +87,8 @@ class AddMember(QWidget):
 
             try:
                 query="INSERT INTO 'members' (vathmos,name, phone) VALUES (?,?,?)"
-                cur.execute(query,(txtvathmos,txtname,txtphone))
-                con.commit()
+                self.cur.execute(query,(txtvathmos,txtname,txtphone))
+                self.con.commit()
                 QMessageBox.information(self,"info","Η εγγραφή Καταχωρήθηκε")
                 self.nameEntry.setText("")
                 self.vathmosEntry.setText("")
@@ -103,7 +99,7 @@ class AddMember(QWidget):
             QMessageBox.information(self, "Warning", "Συμπληρώστε τα κενά")
     
     def fillCbusers(self):
-        query = cur.execute("SELECT name from members ORDER BY name ASC" ).fetchall() 
+        query = self.cur.execute("SELECT name from members ORDER BY name ASC" ).fetchall() 
         lst=list()
         for entry in query:
             lst.append(entry[0])
@@ -120,7 +116,7 @@ class AddMember(QWidget):
                 break           
             else:
                 self.nameEntry.setText("")
-                results =cur.execute("SELECT id,vathmos,name FROM members WHERE name LIKE ? ", ("%" + txtname + "%",)).fetchall()
+                results =self.cur.execute("SELECT id,vathmos,name FROM members WHERE name LIKE ? ", ("%" + txtname + "%",)).fetchall()
                 print(results)
                 if results == []:
                     QMessageBox.information(self, "warning", "Δεν Βρέθηκε τέτοια εγγραφή")  
@@ -130,8 +126,8 @@ class AddMember(QWidget):
                         buttonReply = QMessageBox.question(self, 'Διαγραφή Προσωπικού', "Είστε σίγουρος θέλετε να διαγράψετε τον {} ;".format(user[2]), QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                         if buttonReply == QMessageBox.Yes:
                             try:
-                                cur.execute("Delete FROM members WHERE id=?",(user[0] ,))
-                                con.commit()
+                                self.cur.execute("Delete FROM members WHERE id=?",(user[0] ,))
+                                self.con.commit()
                                 QMessageBox.information(self,"info","User has been Deleted")
                                 self.close()
                                 found= False
@@ -141,4 +137,4 @@ class AddMember(QWidget):
                             continue
                 
     def uiclose(self):
-         self.close()
+        self.close()
