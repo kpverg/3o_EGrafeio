@@ -12,6 +12,7 @@ import components.addmember
 import components.diaxeirisidoc
 import components.FindDocument
 import components.drastiriotita
+import renamer.pdf_rename
 
 from PIL import Image
 Image.warnings.simplefilter('ignore', Image.DecompressionBombWarning)
@@ -81,7 +82,9 @@ class Main(QMainWindow):
         self.tb.addAction(self.findFi)
         self.findFi.triggered.connect(self.funcFIDoc)
         self.tb.addSeparator() 
-        
+        self.renamer = QAction(QIcon('icons/rename.png'), "Rename Doc", self)
+        self.tb.addAction(self.renamer)
+        self.renamer.triggered.connect(self.renamerFunc)
         
     def tabWigdet(self):
         self.tabs = QTabWidget()
@@ -215,9 +218,10 @@ class Main(QMainWindow):
     def funcAddMember(self):
         self.newMember= components.addmember.AddMember()
     def funcFIDoc(self):
- 
         self.findDoc=components.FindDocument.FileManagerApp()
         
+    def renamerFunc(self):
+        self.renameDoc=renamer.pdf_rename.DocumentsManager()
     def funcAddDoc(self):
         self.newDoc=components.diaxeirisidoc.kataxwrhsheggrafou()
         

@@ -81,3 +81,7 @@ def productTopFrame():
        background-color:white;
        }
        """
+def FDocStyle():
+    return """
+background-color:#fcc324;
+"""

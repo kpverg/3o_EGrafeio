@@ -2,10 +2,13 @@ import fitz  # PyMuPDF
 from PIL import Image
 import pytesseract,os
 from pdf2image import convert_from_path
-import re
+import re,sys
 import shutil
-import  glob
-import configuration.pathmodules as pathmod
+
+loadInitFilepath= os.path.abspath('renamer\\configuration')
+sys.path.append(loadInitFilepath)
+import pathmodules as pathmod
+ 
 from datetime import datetime
 
 # Get the current date and time
@@ -29,14 +32,14 @@ pattern_s = re.compile('Σ\..*')
 pattern_date = re.compile(
     '[0-9]{1,2}\s*(Ιαν|Φεβ|Μαρ|Απρ|Μαι|Μαϊ|Ιουν|Ιούν|Ιουλ|Ιούλ|Αυγ|Σεπ|Οκτ|Νοε|Νοέ|Δεκ)\s*[0-9]{2,4}')
 
-#pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
+pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
 class DocumentsManager:
     def __init__(self):
         self.selectRootPath=pathmod.FolderPathManager()
         self.currentpath=self.selectRootPath.getsavedpath()
         self.newfolderpath=""
         self.osname=os.name
-        
+        self.process_pdfs_in_directory()
  
 
 
@@ -59,15 +62,14 @@ class DocumentsManager:
             img = Image.frombytes("RGB", [half_pixmap.width, half_pixmap.height], half_pixmap.samples)
 
             # Perform OCR on the image
-            self.text = pytesseract.image_to_string(img, lang='ell+grc',
-                                    config="--oem 6 ")  # Use 'eng+ell' for English and Greek
+            self.text = pytesseract.image_to_string(img, lang='ell')  # Use 'eng+ell' for English and Greek
             # select_folder()
             self.thema=self.extractThemaFromDocument()
             
             self.cratefolderWithnameThema()
             self.removeDoc()
             self.renamepdfDoc()
-            #self.renameDocument(text)
+            
             
             return self.text
         except Exception as e:
@@ -80,20 +82,35 @@ class DocumentsManager:
     # pdf_filename = os.path.basename(self.pdf_file)    
     # Build the new path for the PDF in the destination folder
         # destination_path = os.path.join(destination_folder, self.pdf_file)
+        if os.name == 'nt':
+            self.pdf_path =self.pdf_path.replace('/', '\\')
+            self.newfolderpath = self.newfolderpath.replace('/', '\\')
 
+ 
     # Move the PDF file to the destination folder
-        shutil.move(self.pdf_path, self.newfolderpath)
-    
+        try:
+            shutil.move(self.pdf_path, self.newfolderpath)
+        except:
+            pass
     def renamepdfDoc(self):
         fakelos = pattern_f.search(self.text)[0].replace(' ', '')
                 # split fakelos to [fak1, fak2, fak3] to catch mistakes
         try:
-                    
+             
             fak1, upofakelos,prwtokollo,sxedio,dt,sximatismos,grafeio=fakelos.split('/')
-        
+            # stoixeia=fakelos.split('/')  
+             
+            # fak1=stoixeia[0]
+            # upofakelos=stoixeia[1]
+            # prwtokollo=stoixeia[2]
         except:
                     
-            fak1, upofakelos, prwtokollo = fakelos.split('/')
+            # fak1, upofakelos, prwtokollo = fakelos.split('/')
+            stoixeia=fakelos.split('/')  
+             
+            fak1=stoixeia[0]
+            upofakelos=stoixeia[1]
+            prwtokollo=stoixeia[2]
             sxedio = pattern_s.search(self.text)[0].replace(' ', '').replace('/', '7')
             dt = pattern_date.search(self.text)[0].replace('/', '7')
 
@@ -153,7 +170,8 @@ class DocumentsManager:
             return "Not found."
     
     def cratefolderWithnameThema(self):
-        self.newfolderpath=f'{self.currentpath}/{self.thema}'
+ 
+        self.newfolderpath=f'{self.currentpath}/{ current_year}_{current_month  }_{current_day  } {self.thema}'
         if not os.path.exists(self.newfolderpath):
             os.makedirs(self.newfolderpath)
  
@@ -161,12 +179,12 @@ class DocumentsManager:
   
         # If it exists, find the next available name
             count = 2
-            new_folder_name = f"{self.thema} ({count})"
+            new_folder_name = f"{ current_year}_{current_month  }_{current_day  } {self.thema} ({count})"
             self.newfolderpath = os.path.join(self.currentpath, new_folder_name)
 
             while os.path.exists(self.newfolderpath):
                 count += 1
-                new_folder_name = f"{self.thema} ({count})"
+                new_folder_name = f"{ current_year}_{current_month  }_{current_day  } {self.thema} ({count})"
                 self.newfolderpath = os.path.join(self.currentpath, new_folder_name)
             os.makedirs(self.newfolderpath)
         
@@ -189,11 +207,7 @@ class DocumentsManager:
                 #print(f"Text from the first half of {pdf_file}:\n")
             # print(extracted_text)
                 #print("\n" + "="*50 + "\n")
-
-if __name__ == "__main__":
-    manager = DocumentsManager() 
-    #directory_path = '/home/thedoctor/Desktop/renamer/fileBeforeRename'  # Replace with the actual path to your PDF files
-    manager.process_pdfs_in_directory()
+ 
 
     
     

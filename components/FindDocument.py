@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QLa
 from PyQt5.QtCore import QSettings
 from PyQt5.QtGui import *
 from PIL import Image
+import  style
 Image.warnings.simplefilter('ignore', Image.DecompressionBombWarning)
 class FileManagerApp(QWidget):
     # def __init__(self):
@@ -57,11 +58,14 @@ class FileManagerApp(QWidget):
 
         # Button to select folder
         select_folder_button = QPushButton("Select Folder", self)
+
+        select_folder_button.setStyleSheet(style.ListBtnStyle())
         select_folder_button.clicked.connect(self.select_folder)
         layout.addWidget(select_folder_button)
 
         # Button to initialize database
         initialize_button = QPushButton("Initialize Database", self)
+        initialize_button.setStyleSheet(style.ListBtnStyle())
         initialize_button.clicked.connect(self.initialize_database)
         layout.addWidget(initialize_button)
 
@@ -72,6 +76,7 @@ class FileManagerApp(QWidget):
 
         # Button to search files
         search_button = QPushButton("Search Files", self)
+        search_button.setStyleSheet(style.ListBtnStyle())
         search_button.clicked.connect(self.search_files_and_display)
         layout.addWidget(search_button)
 
@@ -83,6 +88,7 @@ class FileManagerApp(QWidget):
 
         # Button to open selected file
         open_button = QPushButton("Open File", self)
+        open_button.setStyleSheet(style.ListBtnStyle())
         open_button.clicked.connect(self.open_selected_file)
         layout.addWidget(open_button)
 
@@ -92,21 +98,25 @@ class FileManagerApp(QWidget):
 
         # Button to rename selected file
         rename_button = QPushButton("Rename File", self)
+        rename_button.setStyleSheet(style.ListBtnStyle())
         rename_button.clicked.connect(self.rename_selected_file)
         layout.addWidget(rename_button)
 
         # Button to close the application
         close_button = QPushButton("Close App", self)
+        close_button.setStyleSheet(style.ListBtnStyle())
         close_button.clicked.connect(self.close)
         layout.addWidget(close_button)
 
         # Button to delete the database
         delete_database_button = QPushButton("Delete Database", self)
+        delete_database_button.setStyleSheet(style.ListBtnStyle())
         delete_database_button.clicked.connect(self.delete_database)
         layout.addWidget(delete_database_button)
 
         central_widget = QWidget(self)
         central_widget.setLayout(layout)
+       
         # self.setCentralWidget(central_widget)
         self.show()
     def select_folder(self):
@@ -150,7 +160,7 @@ class FileManagerApp(QWidget):
 
     def search_files_and_display(self):
         query = self.search_entry.text()
-        conn = sqlite3.connect('file_database.db')
+        conn = sqlite3.connect(os.path.abspath('db_Servises/file_database.db'))
         c = conn.cursor()
         c.execute("SELECT name FROM files WHERE name LIKE ?", (query + '%',))
         files = c.fetchall()
@@ -167,7 +177,7 @@ class FileManagerApp(QWidget):
 
     def open_selected_file(self):
         if self.selected_file:
-            conn = sqlite3.connect('file_database.db')
+            conn = sqlite3.connect(os.path.abspath('db_Servises/file_database.db'))
             c = conn.cursor()
             c.execute("SELECT * FROM files WHERE name=?", (self.selected_file,))
             selected_file = c.fetchone()
@@ -190,7 +200,7 @@ class FileManagerApp(QWidget):
     def rename_selected_file(self):
         new_name = self.new_name_entry.text()
         if self.selected_file and new_name:
-            conn = sqlite3.connect('file_database.db')
+            conn = sqlite3.connect(os.path.abspath('db_Servises/file_database.db'))
             c = conn.cursor()
             c.execute("SELECT * FROM files WHERE name=?", (self.selected_file,))
             selected_file = c.fetchone()
@@ -217,7 +227,7 @@ class FileManagerApp(QWidget):
                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
 
         if confirm == QMessageBox.Yes:
-            os.remove('file_database.db')
+            os.remove(os.path.abspath('db_Servises/file_database.db'))
             print("Database deleted.")
 
 # if __name__ == '__main__':
